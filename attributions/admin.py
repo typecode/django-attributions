@@ -5,29 +5,42 @@ from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
+from attributions.forms import RelatedField
+
 
 class RootInline(admin.TabularInline):
     relatives = []
     ct_field = 'content_type'
     ct_fk_field = 'object_id'
 
-    def __init__(self, *args, **kwargs):
-        super(RootInline, self).__init__(*args, **kwargs)
+    def get_formset(self, request, obj=None, **kwargs):
+        fs = super(RootInline, self).get_formset(request, obj=obj, **kwargs)
+
+        old_init = fs.form.__init__
+
+        def __init__(form, *args, **kwargs):
+            # import ipdb; ipdb.set_trace()
+            attr = kwargs.get('instance', None)
+            if attr:
+                initial = kwargs.get('initial', {})
+                initial.update({self.ct_fk_field: attr.related.global_id})
+                kwargs['initial'] = initial
+
+            old_init(form, *args, **kwargs)
+
+        fs.form.__init__ = __init__
+
+        ct_field = fs.form.base_fields[self.ct_field]
 
         q = Q()
         if self.relatives:
             for rel in self.relatives:
                 q |= Q(app_label=rel[0], model=rel[1])
 
-            self.relatives = ContentType.objects.filter(q)
-        else:
-            self.relatives = None
+            ct_field.queryset = ContentType.objects.filter(q)
 
-    def get_formset(self, request, obj=None, **kwargs):
-        fs = super(RootInline, self).get_formset(request, obj=obj, **kwargs)
-
-        if self.relatives is not None:
-            fs.form.base_fields[self.ct_field].queryset = self.relatives
+        choice_field = RelatedField(ct_field.queryset, label='Object')
+        fs.form.base_fields[self.ct_fk_field] = choice_field
 
         return fs
 

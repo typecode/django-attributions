@@ -6,6 +6,8 @@ from django.core.exceptions import (ObjectDoesNotExist, PermissionDenied,
                                     ValidationError)
 from django.forms.models import model_to_dict
 
+from .models import object_from_global_id
+
 
 class RootForm(forms.ModelForm):
 
@@ -98,3 +100,24 @@ class ReverseAttributionForm(AttributionForm):
             pass
 
         raise PermissionDenied
+
+
+class RelatedField(forms.ChoiceField):
+
+    def __init__(self, queryset, *args, **kwargs):
+        kwargs['choices'] = [('', '------')]
+        for ct in queryset:
+            kwargs['choices'] += [
+                (rel.global_id, unicode(rel))
+                for rel in ct.model_class().objects.all()
+            ]
+
+        super(RelatedField, self).__init__(*args, **kwargs)
+
+    def to_python(self, value):
+        value = super(RelatedField, self).to_python(value)
+        if value:
+            obj, ct = object_from_global_id(value)
+            value = obj.pk
+
+        return value
