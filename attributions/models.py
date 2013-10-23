@@ -19,8 +19,7 @@ def object_to_global_id(obj):
     )
 
 
-class Root(models.Model):
-
+class GlobalIdModel(models.Model):
     class Meta:
         abstract = True
 

@@ -2,10 +2,10 @@
 
 from django.db import models
 
-from attributions.models import Root, Attribution, RootField
+from attributions.models import GlobalIdModel, Attribution, RootField
 
 
-class Project(Root):
+class Project(GlobalIdModel):
     name = models.CharField(max_length=200)
     description = models.TextField()
 
