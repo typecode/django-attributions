@@ -102,7 +102,7 @@ class ReverseAttributionForm(AttributionForm):
         raise PermissionDenied
 
 
-class RelatedField(forms.ChoiceField):
+class RelatedField(forms.TypedChoiceField):
 
     def __init__(self, queryset, *args, **kwargs):
         kwargs['choices'] = [('', '------')]
