@@ -31,7 +31,7 @@ class GlobalIdModel(models.Model):
 class RootField(models.ForeignKey):
 
     def __init__(self, *args, **kwargs):
-        kwargs['related_name'] = 'attributions'
+        kwargs.setdefault('related_name', 'attributions')
         super(RootField, self).__init__(*args, **kwargs)
 
 
