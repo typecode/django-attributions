@@ -11,6 +11,3 @@ class Permission(Attribution):
 
     can_edit = models.BooleanField(default=False)
     can_delete = models.BooleanField(default=False)
-
-
-
