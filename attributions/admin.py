@@ -19,7 +19,6 @@ class RootInline(admin.TabularInline):
         old_init = fs.form.__init__
 
         def __init__(form, *args, **kwargs):
-            # import ipdb; ipdb.set_trace()
             attr = kwargs.get('instance', None)
             if attr:
                 initial = kwargs.get('initial', {})
@@ -32,10 +31,11 @@ class RootInline(admin.TabularInline):
 
         ct_field = fs.form.base_fields[self.ct_field]
 
-        q = Q()
         if self.relatives:
-            for rel in self.relatives:
-                q |= Q(app_label=rel[0], model=rel[1])
+            q = Q()
+
+            for app, model in self.relatives:
+                q |= Q(app_label=app.lower(), model=model.lower())
 
             ct_field.queryset = ContentType.objects.filter(q)
 

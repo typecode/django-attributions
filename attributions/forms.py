@@ -107,17 +107,13 @@ class RelatedField(forms.TypedChoiceField):
     def __init__(self, queryset, *args, **kwargs):
         kwargs['choices'] = [('', '------')]
         for ct in queryset:
-            kwargs['choices'] += [
-                (rel.global_id, unicode(rel))
-                for rel in ct.model_class().objects.all()
-            ]
+            kwargs['choices'] += [(
+                rel.global_id,
+                u'{}: {}'.format(type(rel).__name__, unicode(rel))
+            ) for rel in ct.model_class().objects.all()]
 
         super(RelatedField, self).__init__(*args, **kwargs)
 
-    def to_python(self, value):
-        value = super(RelatedField, self).to_python(value)
-        if value:
-            obj, ct = object_from_global_id(value)
-            value = obj.pk
-
-        return value
+    def clean(self, value):
+        clean_value = super(RelatedField, self).clean(value)
+        return object_from_global_id(clean_value)[0].pk
