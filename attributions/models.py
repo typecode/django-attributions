@@ -35,12 +35,29 @@ class RootField(models.ForeignKey):
         super(RootField, self).__init__(*args, **kwargs)
 
 
+class AttributionManager(models.Manager):
+
+    def get_content_type(self, model):
+        app_label, model = model.lower().split('.')
+        ct = ContentType.objects.get(app_label=app_label, model=model)
+        return self.filter(content_type=ct)
+
+    def get_related(self, model):
+        app_label, model = model.lower().split('.')
+        ct = ContentType.objects.get(app_label=app_label, model=model)
+
+        pks = self.filter(content_type=ct).values_list('object_id', flat=True)
+        return ct.model_class().objects.filter(pk__in=pks)
+
+
 class Attribution(models.Model):
     # root = RootField(SomeRootModel)
 
     content_type = models.ForeignKey(ContentType, related_name='+')
     object_id = models.PositiveIntegerField()
     related = generic.GenericForeignKey('content_type', 'object_id')
+
+    objects = AttributionManager()
 
     class Meta:
         abstract = True
