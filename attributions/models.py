@@ -4,6 +4,12 @@ from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+try:
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules([], [r'^attributions.models.RootField'])
+except ImportError:
+    pass
+
 
 def object_from_global_id(global_id):
     app_label, model, id = global_id.split('.')
