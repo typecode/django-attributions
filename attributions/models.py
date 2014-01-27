@@ -25,6 +25,14 @@ def object_to_global_id(obj):
     )
 
 
+def get_fuzzy_content_type(model):
+    if isinstance(model, (str, basestring)):
+        app_label, model = model.lower().split('.')
+        return ContentType.objects.get(app_label=app_label, model=model)
+    else:
+        return ContentType.objects.get_for_model(model)
+
+
 class GlobalIdModel(models.Model):
     class Meta:
         abstract = True
@@ -44,18 +52,11 @@ class RootField(models.ForeignKey):
 class AttributionManager(models.Manager):
 
     def get_content_type(self, model):
-        if isinstance(model, (str, basestring)):
-            app_label, model = model.lower().split('.')
-            ct = ContentType.objects.get(app_label=app_label, model=model)
-        else:
-            ct = ContentType.objects.get_for_model(model)
-
+        ct = get_fuzzy_content_type(model)
         return self.filter(content_type=ct)
 
     def get_related(self, model):
-        app_label, model = model.lower().split('.')
-        ct = ContentType.objects.get(app_label=app_label, model=model)
-
+        ct = get_fuzzy_content_type(model)
         pks = self.filter(content_type=ct).values_list('object_id', flat=True)
         return ct.model_class().objects.filter(pk__in=pks)
 
