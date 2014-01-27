@@ -44,8 +44,12 @@ class RootField(models.ForeignKey):
 class AttributionManager(models.Manager):
 
     def get_content_type(self, model):
-        app_label, model = model.lower().split('.')
-        ct = ContentType.objects.get(app_label=app_label, model=model)
+        if isinstance(model, (str, basestring)):
+            app_label, model = model.lower().split('.')
+            ct = ContentType.objects.get(app_label=app_label, model=model)
+        else:
+            ct = ContentType.objects.get_for_model(model)
+
         return self.filter(content_type=ct)
 
     def get_related(self, model):
