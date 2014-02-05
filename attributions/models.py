@@ -3,6 +3,7 @@
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Q
 
 try:
     from south.modelsinspector import add_introspection_rules
@@ -51,9 +52,12 @@ class RootField(models.ForeignKey):
 
 class AttributionManager(models.Manager):
 
-    def get_content_type(self, model):
-        ct = get_fuzzy_content_type(model)
-        return self.filter(content_type=ct)
+    def get_content_type(self, *fuzzy_models):
+        q = Q()
+        for fm in fuzzy_models:
+            q |= Q(content_type=get_fuzzy_content_type(fm))
+
+        return self.filter(q)
 
     def get_related(self, model):
         ct = get_fuzzy_content_type(model)
