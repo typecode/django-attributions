@@ -64,6 +64,9 @@ class AttributionManager(models.Manager):
         pks = self.filter(content_type=ct).values_list('object_id', flat=True)
         return ct.model_class().objects.filter(pk__in=pks)
 
+    def get_ids(self):
+        return self.values_list('object_id')
+
 
 class Attribution(models.Model):
     # root = RootField(SomeRootModel)
